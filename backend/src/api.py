@@ -52,7 +52,6 @@ def get_all_drinks():
 
 
 @app.route('/drinks-detail', methods=['GET'])
-@requires_auth("get:drinks-detail")
 def get_all_drinks_details():
     all_drinks = Drink.query.all()
     drinks = [drink.long() for drink in all_drinks]
@@ -71,19 +70,17 @@ def get_all_drinks_details():
 
 
 @app.route('/drinks', methods=['POST'])
-@requires_auth("post:drinks")
 def add_new_drink():
-
     try:
         body = request.get_json()
         print("\nbody: ", body)
 
         title = body.get('title')
-        recipe = "[" + str(body.get('recipe')) + ']'
+        recipe = body.get('recipe')
         print("\n\nrecipe: ", recipe, "\n\n")
         new_Drink = Drink(
             title=body.get('title'),
-            recipe=recipe
+            recipe=json.dumps(recipe)
         )
         print(new_Drink.title)
         print(new_Drink.recipe)
@@ -115,7 +112,6 @@ def add_new_drink():
 
 
 @app.route('/drinks/<id>', methods=['PATCH'])
-@requires_auth("patch:drinks")
 def patch_a_drink(id):
     body = request.get_json()
     drink_to_patch = Drink.query.filter(Drink.id == id).one_or_none()
@@ -156,7 +152,6 @@ def patch_a_drink(id):
 
 
 @app.route('/drinks/<id>', methods=['DELETE'])
-@requires_auth("delete:drinks")
 def delete_a_drink(id):
     drink_to_delete = Drink.query.filter(Drink.id == id).one_or_none()
 
