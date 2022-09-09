@@ -52,7 +52,8 @@ def get_all_drinks():
 
 
 @app.route('/drinks-detail', methods=['GET'])
-def get_all_drinks_details():
+@requires_auth("get:drinks-detail")
+def get_all_drinks_details(payload):
     all_drinks = Drink.query.all()
     drinks = [drink.long() for drink in all_drinks]
     return jsonify({"success": True, "drinks": drinks})
@@ -70,7 +71,8 @@ def get_all_drinks_details():
 
 
 @app.route('/drinks', methods=['POST'])
-def add_new_drink():
+@requires_auth("post:drinks")
+def add_new_drink(payload):
     try:
         body = request.get_json()
         print("\nbody: ", body)
@@ -112,6 +114,7 @@ def add_new_drink():
 
 
 @app.route('/drinks/<id>', methods=['PATCH'])
+@requires_auth("patch:drinks")
 def patch_a_drink(id):
     body = request.get_json()
     drink_to_patch = Drink.query.filter(Drink.id == id).one_or_none()
@@ -124,12 +127,13 @@ def patch_a_drink(id):
         print("title: ", body.get('title'))
 
     if 'recipe' in body:
-        drink_to_patch.recipe = body.get('recipe')
+        drink_to_patch.recipe = json.dumps(body.get('recipe'))
         print("recipe: ", body.get('recipe'))
 
     try:
         drink_to_patch.update()
     except:
+        print(sys.exc_info())
         abort(400)
 
     print(drink_to_patch)
@@ -152,7 +156,8 @@ def patch_a_drink(id):
 
 
 @app.route('/drinks/<id>', methods=['DELETE'])
-def delete_a_drink(id):
+@requires_auth("delete:drinks")
+def delete_a_drink(id, payload):
     drink_to_delete = Drink.query.filter(Drink.id == id).one_or_none()
 
     if drink_to_delete is None:
@@ -208,4 +213,13 @@ def server_error(error):
         jsonify({"success": False, "error": 500,
                 "message": "server error"}),
         500,
+    )
+
+
+@app.errorhandler(401)
+def authentication_error(error):
+    return (
+        jsonify({"success": False, "error": 401,
+                "message": "could not verify"}),
+        401,
     )
