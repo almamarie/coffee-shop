@@ -58,7 +58,6 @@ def verify_decode_jwt(token):
         unverified_header = jwt.get_unverified_header(token)
     except:
         print(sys.exc_info())
-    print("I was here")
     rsa_key = {}
     if 'kid' not in unverified_header:
         raise AuthError({
@@ -67,6 +66,8 @@ def verify_decode_jwt(token):
         }, 401)
 
     for key in jwks['keys']:
+        # print(key['kid'])
+        # print(unverified_header['kid'])
         if key['kid'] == unverified_header['kid']:
             rsa_key = {
                 'kty': key['kty'],
@@ -75,7 +76,10 @@ def verify_decode_jwt(token):
                 'n': key['n'],
                 'e': key['e']
             }
+    # print(rsa_key)
     if rsa_key:
+        # print("I was here")
+
         try:
             payload = jwt.decode(
                 token,
@@ -107,11 +111,13 @@ def verify_decode_jwt(token):
         'code': 'invalid_header',
                 'description': 'Unable to find the appropriate key.'
     }, 400)
+    # print("I was here")
 
 
 def check_permissions(permission, payload):
-    print("\n", permission, "\n")
+    # print("\n", permission, "\n")
     if 'permissions' not in payload:
+        print("Permissions not in payload")
         abort(403)
         # raise AuthError({
         #     'code': 'invalid_claims',
@@ -119,12 +125,13 @@ def check_permissions(permission, payload):
         # }, 403)
 
     if permission not in payload['permissions']:
+        print("permission not in permissions")
         abort(403)
         # raise AuthError({
         #     'code': 'unauthorized',
         #     'description': 'Permission not found.'
         # }, 403)
-    print("\nI was here too: returning True\n")
+    # print("\nI was here too: returning True\n")
     return True
 
 
@@ -136,6 +143,7 @@ def requires_auth(permission=''):
             try:
                 payload = verify_decode_jwt(token)
             except:
+                print(sys.exc_info())
                 abort(403)
 
             check_permissions(permission, payload)

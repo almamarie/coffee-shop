@@ -75,11 +75,11 @@ def get_all_drinks_details(payload):
 def add_new_drink(payload):
     try:
         body = request.get_json()
-        print("\nbody: ", body)
+        # print("\nbody: ", body)
 
         title = body.get('title')
         recipe = body.get('recipe')
-        print("\n\nrecipe: ", recipe, "\n\n")
+        # print("\n\nrecipe: ", recipe, "\n\n")
         new_Drink = Drink(
             title=body.get('title'),
             recipe=json.dumps(recipe)
@@ -115,7 +115,7 @@ def add_new_drink(payload):
 
 @app.route('/drinks/<id>', methods=['PATCH'])
 @requires_auth("patch:drinks")
-def patch_a_drink(id):
+def patch_a_drink(payload, id):
     body = request.get_json()
     drink_to_patch = Drink.query.filter(Drink.id == id).one_or_none()
 
@@ -139,25 +139,13 @@ def patch_a_drink(id):
     print(drink_to_patch)
     return jsonify({
         "success": None,
-        "drinks": drink_to_patch.long()
+        "drinks": [drink_to_patch.long()]
     })
-
-
-'''
-@TODO implement endpoint
-    DELETE /drinks/<id>
-        where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should delete the corresponding row for <id>
-        it should require the 'delete:drinks' permission
-    returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
-        or appropriate status code indicating reason for failure
-'''
 
 
 @app.route('/drinks/<id>', methods=['DELETE'])
 @requires_auth("delete:drinks")
-def delete_a_drink(id, payload):
+def delete_a_drink(payload, id):
     drink_to_delete = Drink.query.filter(Drink.id == id).one_or_none()
 
     if drink_to_delete is None:
